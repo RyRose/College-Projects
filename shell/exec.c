@@ -45,6 +45,8 @@ void exec(struct command *cmd) {
 	    close(1);
 	    dup(output_array_fd[i]);
 	    execvp(cmd->cmd_args[i][0], cmd_args[i]);
+	    write(1, "Command not found\n", 19);
+	    exit(-1);
 	} else {
 	    child_array_pid[i] = pid;
         }
