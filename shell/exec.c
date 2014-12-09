@@ -38,6 +38,9 @@ void exec(struct command *cmd) {
 	output_array_fd[i] = fds[0];
     }
 
+    close(1);
+    
+
     for( i = 0; i < cmd->num_cmds; i++) {
 	pid = fork();
 	if (pid == 0) {
@@ -47,10 +50,10 @@ void exec(struct command *cmd) {
 	    close(0);
 	    dup(output_array_fd[i]);
 	    
-	    for( j = 1; j < cmd->num_cmds; j++ ) {
-		close(input_array_fd[j]);
-		close(output_array_fd[j]);
-	    }
+//	    for( j = 1; j < cmd->num_cmds; j++ ) {
+//		close(input_array_fd[j]);
+//		close(output_array_fd[j]);
+//	    }
 //	   close(input_array_fd[i]);
 //	   close(output_array_fd[i]);
 //	    write(1, cmd->cmd_args[i][0], 5);
