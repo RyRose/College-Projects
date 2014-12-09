@@ -24,65 +24,71 @@ void exec(struct command *cmd) {
     if (cmd->dst_file != NULL) {
 	output_fd = open(cmd->dst_file, O_WRONLY);
     } else {
-	pipe(fds);
-	output_fd = fds[0];
+	output_array_fd[cmd->num_cmds - 1] = 1;
     }
     output_array_fd[0] = output_fd;	
     input_array_fd[0] = input_fd;
     
 
     for( i = 1; i < cmd->num_cmds; i++ ) {
-	// output_fd = (cmd->cmd_args[i][2] != NULL) ? open(cmd->cmd_args[i][2], O_WRONLY) : 1;
-	input_array_fd[i] = fds[1];
 	pipe(fds);
-	output_array_fd[i] = fds[0];
+	input_array_fd[ i ] = fds[0];
+	output_array_fd[i - 1] = fds[1];
     }
 
-    close(1);
     
 
     for( i = 0; i < cmd->num_cmds; i++) {
 	pid = fork();
 	if (pid == 0) {
-//	    write(1,"Child Process\n", 14);
-	    close(1);
-	    dup(input_array_fd[i]);
-	    close(0);
-	    dup(output_array_fd[i]);
 	    
-//	    for( j = 1; j < cmd->num_cmds; j++ ) {
-//		close(input_array_fd[j]);
-//		close(output_array_fd[j]);
-//	    }
-//	   close(input_array_fd[i]);
-//	   close(output_array_fd[i]);
-//	    write(1, cmd->cmd_args[i][0], 5);
-//	    write(1, cmd->cmd_args[i][1], 5);
+	    if( input_array_fd[i] != 0 ) {
+		close(0);
+		dup(input_array_fd[i]);
+	    }
+
+	    if( output_array_fd[i] != 1 ) {
+		close(1);
+		dup(output_array_fd[i]);
+	    }
+
+	    for ( j = 0; j < cmd->num_cmds; j++) {
+		if ( input_array_fd[j] != 0 ) {
+		    close(input_array_fd[j]);
+		}
+		if ( output_array_fd[j] != 1 ) {
+		    close(output_array_fd[j]);
+		}
+	    }
+
+	    free(input_array_fd);
+	    free(output_array_fd);
+	    free(child_array_pid);
+
 	    execvp(cmd->cmd_args[i][0], cmd->cmd_args[i]);
 	    write(1, "Command not found\n", 19);
 	    exit(-1);
 	} else {
-//	    write(1, "Parent Process\n", 15);
 	    child_array_pid[i] = pid;
         }
     }
-    write(1, "DO IT\n", 7);
-    for( i = 0; i < cmd->num_cmds; i++ ) {
-	waitpid(child_array_pid[i], NULL, 0);
-//	close(input_array_fd[i]);
-//	close(output_array_fd[i]);
-//	waitpid(child_array_pid[i], NULL, 0);
+
+    for ( j = 0; j < cmd->num_cmds; j++) {
+	if ( input_array_fd[j] != 0 ) {
+	    close(input_array_fd[j]);
+	}
+	if ( output_array_fd[j] != 1 ) {
+	    close(output_array_fd[j]);
+	}
     }
 
-//    for( i = 0; i < cmd->num_cmds; i++ ) {
-//	close(3);
-//	dup(input_array_fd[i]);
-//	close(input_array_fd[i]);
-//	dup(output_array_fd[i]);
-//	close(output_array_fd[i]);
-//    }
+    for( i = 0; i < cmd->num_cmds; i++ ) {
+	waitpid(child_array_pid[i], NULL, 0);
+    }
+
 
     free( input_array_fd );
     free( output_array_fd );
     free( child_array_pid );
 }
+
