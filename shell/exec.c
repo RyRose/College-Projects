@@ -38,34 +38,36 @@ void exec(struct command *cmd) {
     for( i = 0; i < cmd->num_cmds; i++) {
 	pid = fork();
 	if (pid == 0) {
-	    write(1,"Child Process\n", 14);
-	    close(0);
-	    dup(input_array_fd[i]);
+//	    write(1,"Child Process\n", 14);
 	    close(1);
+	    dup(input_array_fd[i]);
+	    close(0);
 	    dup(output_array_fd[i]);
 	    
-	    for( j = 0; j < cmd->num_cmds; j++ ) {
-		close(input_array_fd[j]);
-		close(output_array_fd[j]);
-	    }
+//	    for( j = 0; j < cmd->num_cmds; j++ ) {
+//		close(input_array_fd[j]);
+//		close(output_array_fd[j]);
+//	    }
 	   // close(input_array_fd[i]);
 	   // close(output_array_fd[i]);
-	    free(input_array_fd);
-	    free(output_array_fd);
-	    free(child_array_pid);
-
+//	    free(input_array_fd);
+//	    free(output_array_fd);
+//	    free(child_array_pid);
+//	    write(1, cmd->cmd_args[i][0], 5);
+//	    write(1, cmd->cmd_args[i][1], 5);
 	    execvp(cmd->cmd_args[i][0], cmd->cmd_args[i]);
 	    write(1, "Command not found\n", 19);
 	    exit(-1);
 	} else {
-	    write(1, "Parent Process\n", 15);
+//	    write(1, "Parent Process\n", 15);
 	    child_array_pid[i] = pid;
         }
     }
-
+    write(1, "DO IT\n", 7);
     for( i = 0; i < cmd->num_cmds; i++ ) {
-	close(input_array_fd[i]);
-	close(output_array_fd[i]);
+//	waitpid(child_array_pid[i], &child_array_pid[i], 0);
+//	close(input_array_fd[i]);
+//	close(output_array_fd[i]);
 	waitpid(child_array_pid[i], NULL, 0);
     }
 
